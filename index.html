@@ -193,7 +193,7 @@
     .result-description{font-size:15px;color:var(--text-secondary);line-height:1.85;margin-bottom:28px;max-width:520px}
     .result-dimensions{width:100%;margin-bottom:24px}
     .dimension-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .dimension-label{font-size:12px;letter-spacing:.04em;width:48px;flex-shrink:0}
+    .dimension-label{font-size:11px;letter-spacing:.03em;width:55px;flex-shrink:0;line-height:1.3}
     .dimension-label.left{text-align:right;color:var(--gold);font-weight:500}
     .dimension-label.right{text-align:left;color:var(--text-secondary)}
     .dimension-bar-wrap{flex:1;height:5px;background:var(--border-subtle);border-radius:5px;overflow:hidden;display:flex}
@@ -211,6 +211,38 @@
     .func-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
     .func-bar-fill.dom{background:var(--gold)}.func-bar-fill.aux{background:rgba(184,148,62,.6)}
     .func-bar-fill.ter{background:rgba(184,148,62,.35)}.func-bar-fill.inf{background:rgba(0,0,0,0.08)}
+/* 认知功能 — 雷达图 + 卡片栈 */
+.cog-section-title{text-align:center;font-size:14px;color:var(--text-muted);letter-spacing:.06em;margin-bottom:18px;margin-top:4px}
+.cog-radar-wrap{width:100%;max-width:380px;margin:0 auto 28px}
+.cog-radar-wrap svg{width:100%;height:auto}
+.cog-stack-cards{display:flex;flex-direction:column;gap:10px;width:100%;margin-bottom:16px}
+.cog-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;box-shadow:var(--shadow-sm);transition:all .25s ease}
+.cog-card.dom-card{border-left:3px solid var(--gold);background:linear-gradient(135deg,rgba(184,148,62,.06),var(--bg-surface))}
+.cog-card.aux-card{border-left:3px solid rgba(184,148,62,.5);background:linear-gradient(135deg,rgba(184,148,62,.03),var(--bg-surface))}
+.cog-card.ter-card{border-left:3px solid rgba(184,148,62,.25)}
+.cog-card.inf-card{border-left:3px solid rgba(0,0,0,.1)}
+.cog-card-rank{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.dom-card .cog-card-rank{background:var(--gold);color:#fff}
+.aux-card .cog-card-rank{background:rgba(184,148,62,.15);color:var(--gold)}
+.ter-card .cog-card-rank{background:rgba(184,148,62,.08);color:var(--gold)}
+.inf-card .cog-card-rank{background:rgba(0,0,0,.04);color:var(--text-muted)}
+.cog-card-body{flex:1;min-width:0}
+.cog-card-fn{font-weight:600;font-size:14px;letter-spacing:.04em;margin-bottom:1px}
+.cog-card-label{font-size:11px;color:var(--text-muted)}
+.cog-card-score{text-align:right;flex-shrink:0}
+.cog-card-score-val{font-size:20px;font-family:var(--font-serif);font-weight:700}
+.cog-card-score-max{font-size:10px;color:var(--text-muted)}
+.cog-note{text-align:center;padding:26px 20px;background:var(--bg-surface);border:1px dashed var(--border-card);border-radius:10px;margin-bottom:16px}
+.cog-note-icon{font-size:30px;margin-bottom:8px;opacity:.5}
+.cog-note p{font-size:13px;color:var(--text-muted);line-height:1.7}
+.cog-note strong{color:var(--gold)}
+.cog-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;width:100%;max-width:500px;margin:0 auto 28px}
+@media(min-width:600px){.cog-legend{grid-template-columns:1fr 1fr}}
+.cog-legend-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg-surface);border-radius:6px;border:1px solid var(--border-subtle);font-size:11px;line-height:1.5}
+.cog-legend-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.cog-legend-dot.perceive{background:rgba(100,140,200,.5)}.cog-legend-dot.judge{background:rgba(184,148,62,.5)}
+.cog-legend-code{font-weight:600;font-size:12px;color:var(--text-primary);white-space:nowrap}
+.cog-legend-desc{color:var(--text-muted)}
 
     /* 解锁卡片 */
     .result-locked-card{width:100%;padding:24px 20px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;text-align:center;box-shadow:var(--shadow-sm)}
@@ -878,35 +910,121 @@ function calculateType(){
 }
 
 function showResults(){
-  const {type,percentages}=calculateType();
+  const {type,percentages,scores}=calculateType();
   const data=typeData[type]||{nickname:"独特的你",emoji:"✨",group:"",groupLabel:"",description:"你的组合非常独特。拥抱你自己的与众不同。",
     funcStack:{dom:"—",aux:"—",ter:"—",inf:"—"},funcDetail:"",strengths:[],blindspots:[],career:[],relationships:"",grip:""};
   document.getElementById('result-type').textContent=type;
   document.getElementById('result-nickname').textContent=data.emoji+' '+data.nickname;
   const groupEl=document.getElementById('result-group');groupEl.textContent=data.groupLabel||'';groupEl.className='result-group '+(data.group||'');
   document.getElementById('result-description').textContent=data.description;
+
+  // 维度条形图（两种模式都有）
   const dimLabels={EI:{left:'外向 E',right:'I 内向'},SN:{left:'实感 S',right:'N 直觉'},TF:{left:'思考 T',right:'F 情感'},JP:{left:'判断 J',right:'P 感知'}};
   const dimsContainer=document.getElementById('result-dimensions');dimsContainer.innerHTML='';
   ['EI','SN','TF','JP'].forEach(key=>{
     const dim=percentages[key],labels=dimLabels[key];
     const row=document.createElement('div');row.className='dimension-row';
-    row.innerHTML=`<span class="dimension-label left">${labels.left}</span><div class="dimension-bar-wrap"><div class="dimension-bar-fill dom-bar" style="width:0" data-width="${dim.leftPct}%"></div><div class="dimension-bar-fill muted" style="width:0" data-width="${dim.rightPct}%"></div></div><span class="dimension-label right">${labels.right}</span>`;
+    row.innerHTML='<span class="dimension-label left">'+labels.left+'<br><strong style="font-size:13px">'+dim.leftPct+'%</strong></span><div class="dimension-bar-wrap"><div class="dimension-bar-fill dom-bar" style="width:0" data-width="'+dim.leftPct+'%"></div><div class="dimension-bar-fill muted" style="width:0" data-width="'+dim.rightPct+'%"></div></div><span class="dimension-label right"><strong style="font-size:13px">'+dim.rightPct+'%</strong><br>'+labels.right+'</span>';
     dimsContainer.appendChild(row);
   });
-  const fs=data.funcStack;
-  const funcNames={Ni:'内倾直觉',Ne:'外倾直觉',Si:'内倾感觉',Se:'外倾感觉',Ti:'内倾思维',Te:'外倾思维',Fi:'内倾情感',Fe:'外倾情感'};
-  document.getElementById('result-func-stack').innerHTML=`
-    <h3 style="text-align:center;font-size:13px;color:var(--text-muted);letter-spacing:.04em;margin-bottom:14px">认知功能栈（荣格-迈尔斯模型）</h3>
-    <div class="func-row"><span class="func-pos">主导</span><span class="func-name" style="color:var(--gold)">${fs.dom}</span><span style="font-size:11px;color:var(--text-secondary)">${funcNames[fs.dom]||''}</span><div class="func-bar-wrap"><div class="func-bar-fill dom" style="width:100%"></div></div></div>
-    <div class="func-row"><span class="func-pos">辅助</span><span class="func-name" style="color:rgba(184,148,62,.7)">${fs.aux}</span><span style="font-size:11px;color:var(--text-secondary)">${funcNames[fs.aux]||''}</span><div class="func-bar-wrap"><div class="func-bar-fill aux" style="width:75%"></div></div></div>
-    <div class="func-row"><span class="func-pos">第三</span><span class="func-name" style="color:rgba(184,148,62,.45)">${fs.ter}</span><span style="font-size:11px;color:var(--text-secondary)">${funcNames[fs.ter]||''}</span><div class="func-bar-wrap"><div class="func-bar-fill ter" style="width:50%"></div></div></div>
-    <div class="func-row"><span class="func-pos">劣势</span><span class="func-name" style="color:rgba(0,0,0,.2)">${fs.inf}</span><span style="font-size:11px;color:var(--text-secondary)">${funcNames[fs.inf]||''}</span><div class="func-bar-wrap"><div class="func-bar-fill inf" style="width:25%"></div></div></div>`;
+
+  const stackContainer=document.getElementById('result-func-stack');
+
+  // 简洁版：隐藏认知功能，显示提示
+  if(testMode==='concise'){
+    stackContainer.innerHTML='<div class="cog-note"><div class="cog-note-icon">🔬</div><p>想了解你的<strong>认知功能得分</strong>和<strong>功能栈</strong>？<br>返回首页切换到<strong>「完整版」</strong>重新测试即可解锁。</p></div>';
+  } else {
+    // 完整版：雷达图 + 卡片栈
+    const funcNames={Ni:'内倾直觉',Ne:'外倾直觉',Si:'内倾感觉',Se:'外倾感觉',Ti:'内倾思维',Te:'外倾思维',Fi:'内倾情感',Fe:'外倾情感'};
+    const cogScores={Te:scores.Te||0,Ti:scores.Ti||0,Fe:scores.Fe||0,Fi:scores.Fi||0,Se:scores.Se||0,Si:scores.Si||0,Ne:scores.Ne||0,Ni:scores.Ni||0};
+    const maxCog=Math.max(...Object.values(cogScores),1);
+
+    // 雷达图 SVG
+    const funcOrder=['Te','Ti','Fe','Fi','Se','Si','Ne','Ni'];
+    const cx=195,cy=195,r=140,levels=4;
+    let svg='<svg viewBox="0 0 390 390"><defs><radialGradient id="rg"><stop offset="0%" stop-color="rgba(184,148,62,.12)"/><stop offset="100%" stop-color="rgba(184,148,62,0)"/></radialGradient></defs>';
+
+    // 背景网格
+    for(let l=1;l<=levels;l++){
+      let pts=[];const lr=r*l/levels;
+      funcOrder.forEach((_,i)=>{
+        const a=(i*45-90)*Math.PI/180;
+        pts.push((cx+Math.cos(a)*lr).toFixed(1)+','+(cy+Math.sin(a)*lr).toFixed(1));
+      });
+      svg+='<polygon points="'+pts.join(' ')+'" fill="none" stroke="rgba(0,0,0,'+(l===levels?'.08':'.04')+')" stroke-width="'+(l===levels?'1':'.5')+'"/>';
+    }
+
+    // 轴线
+    funcOrder.forEach((_,i)=>{
+      const a=(i*45-90)*Math.PI/180;
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+Math.cos(a)*r).toFixed(1)+'" y2="'+(cy+Math.sin(a)*r).toFixed(1)+'" stroke="rgba(0,0,0,.06)" stroke-width=".5"/>';
+    });
+
+    // 数据多边形
+    let dataPts=[];
+    funcOrder.forEach((fn,i)=>{
+      const a=(i*45-90)*Math.PI/180;
+      const d=(cogScores[fn]||0)/maxCog*r;
+      dataPts.push((cx+Math.cos(a)*d).toFixed(1)+','+(cy+Math.sin(a)*d).toFixed(1));
+    });
+    svg+='<polygon points="'+dataPts.join(' ')+'" fill="rgba(184,148,62,.15)" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round"/>';
+
+    // 数据点
+    funcOrder.forEach((fn,i)=>{
+      const a=(i*45-90)*Math.PI/180;
+      const d=(cogScores[fn]||0)/maxCog*r;
+      svg+='<circle cx="'+(cx+Math.cos(a)*d).toFixed(1)+'" cy="'+(cy+Math.sin(a)*d).toFixed(1)+'" r="4" fill="var(--gold)" stroke="#fff" stroke-width="1.5"/>';
+    });
+
+    // 标签
+    const shortLabels={Te:'Te 外倾思维',Ti:'Ti 内倾思维',Fe:'Fe 外倾情感',Fi:'Fi 内倾情感',Se:'Se 外倾感觉',Si:'Si 内倾感觉',Ne:'Ne 外倾直觉',Ni:'Ni 内倾直觉'};
+    funcOrder.forEach((fn,i)=>{
+      const a=(i*45-90)*Math.PI/180;
+      const lr=r+32;
+      const lx=cx+Math.cos(a)*lr,ly=cy+Math.sin(a)*lr;
+      const score=cogScores[fn]||0;
+      svg+='<text x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="middle" font-size="10" fill="var(--text-secondary)" font-family="sans-serif">'+fn+'</text>';
+      svg+='<text x="'+lx.toFixed(1)+'" y="'+(ly+16).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="sans-serif">'+score+'分</text>';
+    });
+
+    svg+='<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="var(--text-muted)"/></svg>';
+
+    stackContainer.innerHTML='<div class="cog-section-title">认知功能雷达图</div><div class="cog-radar-wrap">'+svg+'</div>';
+
+  // 图例注释
+  const legendHTML='<div class="cog-legend">'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot judge"></span><div><span class="cog-legend-code">Te 外倾思维</span><br><span class="cog-legend-desc">组织外部系统，追求效率与结果</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot judge"></span><div><span class="cog-legend-code">Ti 内倾思维</span><br><span class="cog-legend-desc">构建内在逻辑，追求精确与自洽</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot judge"></span><div><span class="cog-legend-code">Fe 外倾情感</span><br><span class="cog-legend-desc">创造人际和谐，关注群体情感需求</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot judge"></span><div><span class="cog-legend-code">Fi 内倾情感</span><br><span class="cog-legend-desc">坚守内在价值观，追求真实与意义</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot perceive"></span><div><span class="cog-legend-code">Se 外倾感觉</span><br><span class="cog-legend-desc">沉浸当下感官体验，灵活应变</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot perceive"></span><div><span class="cog-legend-code">Si 内倾感觉</span><br><span class="cog-legend-desc">比对过去经验，维护稳定与秩序</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot perceive"></span><div><span class="cog-legend-code">Ne 外倾直觉</span><br><span class="cog-legend-desc">探索无限可能性，跳跃性联想</span></div></div>'+
+    '<div class="cog-legend-item"><span class="cog-legend-dot perceive"></span><div><span class="cog-legend-code">Ni 内倾直觉</span><br><span class="cog-legend-desc">洞察深层模式与未来趋势</span></div></div>'+
+  '</div>';
+  stackContainer.innerHTML+='<div class="cog-section-title" style="margin-top:8px">功能注释</div>'+legendHTML;
+
+    // 功能栈卡片
+    const fs=data.funcStack;
+    const fsOrder=[fs.dom,fs.aux,fs.ter,fs.inf];
+    const fsLabels=['主导 Dominant','辅助 Auxiliary','第三 Tertiary','劣势 Inferior'];
+    const cardClasses=['dom-card','aux-card','ter-card','inf-card'];
+
+    let cardsHTML='<div class="cog-section-title" style="margin-top:12px">你的功能栈</div><div class="cog-stack-cards">';
+    fsOrder.forEach((fn,i)=>{
+      const score=cogScores[fn]||0;
+      const pct=Math.round(score/maxCog*100);
+      cardsHTML+='<div class="cog-card '+cardClasses[i]+'"><div class="cog-card-rank">'+(i+1)+'</div><div class="cog-card-body"><div class="cog-card-fn">'+fn+'</div><div class="cog-card-label">'+fsLabels[i]+' · '+(funcNames[fn]||'')+'</div></div><div class="cog-card-score"><div class="cog-card-score-val">'+score+'</div><div class="cog-card-score-max">/ '+maxCog+' · '+pct+'%</div></div></div>';
+    });
+    cardsHTML+='</div>';
+    stackContainer.innerHTML+=cardsHTML;
+  }
+
   showSection(sectionResults);sectionResults.scrollIntoView({behavior:'smooth',block:'start'});
   setTimeout(()=>{document.querySelectorAll('.dimension-bar-fill').forEach(bar=>{bar.style.width=bar.getAttribute('data-width')})},300);
   window._lastResult={type,data};
 }
 
-// ============================================================
 // 分享
 // ============================================================
 document.getElementById('btn-share').addEventListener('click',()=>{
